@@ -3,7 +3,7 @@ import AppointmentStatusEmail from "@/templates/emails/appointment-scheduled";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from 'resend';
 const resend = new Resend("re_f7epFUgS_NLRBgL9P24AjKFCuGyHBYkXx")
-
+// Post function for the email
 export async function POST(req:NextRequest,res :NextResponse) {
     
     await resend.emails.send({
