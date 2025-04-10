@@ -5,13 +5,13 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TimerIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { AppointmentType } from "@/types/appointment";
 
 const SelectAppointmentType = () => {
   type AppointmentTypes = "Quick" | "Standard" | "Comprehensive";
@@ -72,3 +72,34 @@ const SelectAppointmentType = () => {
 };
 
 export default SelectAppointmentType;
+
+const AppointmentTypes: AppointmentType[] = [
+  {
+    id: 'quick-remote',
+    name: "Quick Remote Consultation",
+    duration: 15,
+    mode: 'REMOTE',
+    price: 500
+  },
+  {
+    id: 'standard-remote',
+    name: "Standard Remote Consultation",
+    duration: 30,
+    mode: 'REMOTE',
+    price: 800
+  },
+  {
+    id: 'quick-visit',
+    name: "Quick In-Person Visit",
+    duration: 15,
+    mode: 'IN_PERSON',
+    price: 700
+  },
+  {
+    id: 'standard-visit',
+    name: "Standard In-Person Visit",
+    duration: 30,
+    mode: 'IN_PERSON',
+    price: 1000
+  }
+];

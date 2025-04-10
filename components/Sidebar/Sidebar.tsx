@@ -1,55 +1,47 @@
-import React from "react";
-import { Command, CommandItem, CommandList } from "@/components/ui/command";
-import {
-  CalendarIcon,
-  EnvelopeClosedIcon,
-  PersonIcon,
-  DashboardIcon,
-  ChatBubbleIcon,
-} from "@radix-ui/react-icons";
-
-import { Card, CardTitle } from "../ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+
 const Sidebar = () => {
+  const { auth, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/auth/signin');
+  };
+
   return (
-    <div className="hidden sm:block min-w-[210px] shadow-xl px-3">
+    <div className="hidden sm:flex min-w-[210px] shadow-xl px-3 flex-col h-screen">
       <header>
-        <Card className="p-4 py-4 shadow-none border-none">
-          <CardTitle className="text-[2.5rem]">WeCare</CardTitle>
-        </Card>
+        <Link href="/">
+          <Card className="p-4 py-4 shadow-none border-none">
+            <CardTitle className="text-[2.5rem] bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
+              WeCare
+            </CardTitle>
+          </Card>
+        </Link>
       </header>
-      <Card className="border-none shadow-none font-normal text-muted-foreground">
-        <section className="flex flex-col gap-2">
-          <Link
-            href="/doctor/dashboard"
-            className="flex gap-1 items-center text-xl px-3  py-2 hover:bg-muted"
-          >
-            <DashboardIcon className="mr-2 h-5 w-5" />
-            <span>Dashboard</span>
-          </Link>
-          <Link
-            href="/doctor/patientlist"
-            className="flex gap-1 items-center text-xl px-3  py-2 hover:bg-muted"
-          >
-            <PersonIcon className="mr-2 h-5 w-5" />
-            <span>Patient List</span>
-          </Link>
-          <Link
-            href="/doctor/appointments"
-            className="flex gap-1 items-center text-xl px-3  py-2 hover:bg-muted"
-          >
-            <CalendarIcon className="mr-2 h-5 w-5" />
-            <span>Appointments</span>
-          </Link>
-          <Link
-            href="/doctor/messages"
-            className="flex gap-1 items-center text-xl px-3  py-2 hover:bg-muted"
-          >
-            <EnvelopeClosedIcon className="mr-2 h-5 w-5" />
-            <span>Messages</span>
-          </Link>
-        </section>
-      </Card>
+
+      {/* Navigation items will go here */}
+      <div className="flex-1">
+        {/* Existing navigation content */}
+      </div>
+
+      {/* Logout section at bottom */}
+      <div className="p-4 border-t">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
+      </div>
     </div>
   );
 };

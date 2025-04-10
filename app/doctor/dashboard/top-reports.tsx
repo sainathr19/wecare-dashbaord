@@ -27,7 +27,7 @@ const TopReports = () => {
           <CardDescription>Patients with abnormal test reports</CardDescription>
         </div>
         <Button asChild size="sm" className="ml-auto gap-1">
-          <Link href="/doctor/patientlist">
+          <Link href="/doctor/patients">
             View All
             <ArrowUpRight className="h-4 w-4" />
           </Link>

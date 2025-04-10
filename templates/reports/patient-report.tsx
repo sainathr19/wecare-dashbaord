@@ -1,86 +1,47 @@
 import { Pencil2Icon } from "@radix-ui/react-icons";
 import React from "react";
-const PatientReportTemplate = () => {
-  const Dummy = {
-    date: "Jan 9, 2023",
-    dueDate: "Feb 9, 2023",
-    customer: {
-      zip: "20002",
-      city: "Anytown",
-      name: "Sainath Reddy",
-      state: "AP",
-      address: "Plot no 631, Road no 6",
-      country: "India",
-    },
-    lineItems: [
-      {
-        item: "Blood Pressure",
-        price: "Normal",
-        quantity: "65.4",
-      },
-      {
-        item: "Temperature",
-        price: "Normal",
-        quantity: "95",
-      },
-      {
-        item: "Blood Pressure",
-        price: "Normal",
-        quantity: "65.4",
-      },
-      {
-        item: "Temperature",
-        price: "Normal",
-        quantity: "95",
-      },
-    ],
-    invoiceTotal: "$1,219.00",
-    invoiceNumber: "0003578",
-  };
-  const report = {
-    reportId: "PR1001",
-    hospitalAssociated: {
-      name: "WeCare Hospitals",
-      addressLine1: "Road no.6 , Nandyal Road",
-      addressLine2: "Kurnool, 518001",
-    },
-    doctorName: "Sainath Reddy",
-    patientName: "NandaKishore Talari",
-    patientInfo: "19 Male",
-    checkupTime: "9:56am",
-    checkupDate: "23 May 2023",
-    biometrics: [
-      {
-        name: "Blood Pressure",
-        measurement: "65.4",
-        average: "65.4",
-        status: "Normal",
-      },
-      {
-        name: "Temperature",
-        measurement: "95",
-        average: "95",
-        status: "Normal",
-      },
-      {
-        name: "Blood Oxygen",
-        measurement: "130",
-        average: "110",
-        status: "Abnormal",
-      },
-      {
-        name: "Weight",
-        measurement: "68",
-        average: "65",
-        status: "Normal",
-      },
-    ],
-    note: "-",
-    overallCondition: "Normal",
-  };
+import { Report } from "@/types/report";
+type PatientReportProps = {
+  report: Report;
+}
+const PatientReportTemplate = ( {report } : PatientReportProps) => {
+  // const report = {
+  //   reportId: "PR1001",
+  //   hospitalAssociated: {
+  //     name: "WeCare Hospitals",
+  //     addressLine1: "Road no.6 , Nandyal Road",
+  //     addressLine2: "Kurnool, 518001",
+  //   },
+  //   doctorName: "Sainath Reddy",
+  //   patientName: "NandaKishore Talari",
+  //   patientInfo: "19 Male",
+  //   checkupTime: "9:56am",
+  //   checkupDate: "23 May 2023",
+  //   biometrics: [
+  //     {
+  //       name: "Heart Rate",
+  //       measurement: "72",
+  //       average: "75",
+  //       status: "Normal",
+  //     },
+  //     {
+  //       name: "Temperature",
+  //       measurement: "98.6",
+  //       average: "98.4",
+  //       status: "Normal",
+  //     },
+  //     {
+  //       name: "SpO2",
+  //       measurement: "98",
+  //       average: "97",
+  //       status: "Normal",
+  //     },
+  //   ],
+  //   note: "-",
+  //   overallCondition: "Normal",
+  // };
   const TableHeads = ["Biometric", "Measurement", "Average", "Status"];
   return (
-    // <div className="flex justify-center my-1 items-center h-screen w-full">
     <div className="border-slate-500 p-5 w-[40vh] border-2 rounded-xl h-full">
       <header className="flex flex-row justify-between my-3">
         <div className="flex items-center">
@@ -89,13 +50,6 @@ const PatientReportTemplate = () => {
             <p className="text-2xl">Patient Report</p>
             <p className="text-lg text-muted-foreground">{report.reportId}</p>
           </div>
-        </div>
-        <div className="text-right text-gray-700">
-          <p className="text-lg font-bold text-gray-800">
-            {report.hospitalAssociated.name}
-          </p>
-          <p>{report.hospitalAssociated.addressLine1}</p>
-          <p>{report.hospitalAssociated.addressLine2}</p>
         </div>
       </header>
       <hr />
@@ -166,7 +120,6 @@ const PatientReportTemplate = () => {
         </div>
       </footer>
     </div>
-    // </div>
   );
 };
 
