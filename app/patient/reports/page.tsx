@@ -20,6 +20,7 @@ import { PageLoading } from "@/components/ui/page-loading";
 import { ApiResponse } from "@/types/api";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { toast } from "sonner";
 
 interface Report {
   reportId: string;
@@ -65,7 +66,7 @@ export default function ReportsPage() {
     const fetchReports = async () => {
       if (!userId) return;
       try {
-        const { data: res } = await axiosInstance.get<ApiResponse<Report[]>>(`/patient/reports?patientId=${userId}`,{
+        const { data: res } = await axiosInstance.get<ApiResponse<{reports: Report[], total: number}>>(`/patient/reports?patientId=${userId}`,{
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           }
@@ -73,7 +74,7 @@ export default function ReportsPage() {
         if (res.error) {
           throw new Error(res.error);
         }
-        setReports(res.data || []);
+        setReports(res.data!.reports || []);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
         setReports([]);
@@ -95,34 +96,61 @@ export default function ReportsPage() {
 
   const handleDownload = async (reportId: string): Promise<void> => {
     try {
-      // Navigate to report page and wait for render
+      // Show loading toast
+      toast.loading("Preparing report for download...");
+
       const reportWindow = window.open(`/patient/reports/${reportId}`, '_blank');
-      if (!reportWindow) return;
+      if (!reportWindow) {
+        toast.error("Failed to open report. Please check your popup settings.");
+        return;
+      }
 
       reportWindow.onload = () => {
         const reportElement = reportWindow.document.querySelector(".report");
-        if (!reportElement) return;
-
-        html2canvas(reportElement as HTMLElement).then((canvas) => {
-          const imgData = canvas.toDataURL("image/png");
-          const doc = new jsPDF("p", "mm", "a4");
-          const componentWidth = doc.internal.pageSize.getWidth();
-          const componentHeight = doc.internal.pageSize.getHeight();
-          doc.addImage(imgData, "PNG", 0, 0, componentWidth, componentHeight);
-          doc.save(`report-${reportId}.pdf`);
+        if (!reportElement) {
+          toast.error("Could not find report content");
           reportWindow.close();
-        });
+          return;
+        }
+
+        html2canvas(reportElement as HTMLElement)
+          .then((canvas) => {
+            const imgData = canvas.toDataURL("image/png");
+            const doc = new jsPDF("p", "mm", "a4");
+            const componentWidth = doc.internal.pageSize.getWidth();
+            const componentHeight = doc.internal.pageSize.getHeight();
+            doc.addImage(imgData, "PNG", 0, 0, componentWidth, componentHeight);
+            doc.save(`report-${reportId}.pdf`);
+            reportWindow.close();
+            toast.success("Report downloaded successfully!");
+          })
+          .catch((error) => {
+            console.error('Error generating PDF:', error);
+            toast.error("Failed to generate PDF");
+            reportWindow.close();
+          });
+      };
+
+      reportWindow.onerror = () => {
+        toast.error("Failed to load report content");
+        reportWindow.close();
       };
     } catch (error) {
       console.error('Error downloading report:', error);
+      toast.error("Failed to download report");
     }
   };
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>My Medical Reports</CardTitle>
+          {reports.length > 0 && (
+            <div className="text-sm text-muted-foreground">
+              Total Reports: {reports.length}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">

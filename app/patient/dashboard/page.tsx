@@ -8,12 +8,52 @@ import { Heart, Thermometer, Octagon } from "lucide-react";
 import { PageLoading } from "@/components/ui/page-loading";
 import AreaChartComponent from "@/components/AreaChart/AreaChart";
 import { useUserId } from "@/hooks/useUserId";
+import axiosInstance from "@/lib/axios";
+
+interface Report {
+  timestamp: string;
+  temperature: string;
+  bloodOxygen: number;
+  heartRate: number;
+}
 
 export default function PatientDashboard() {
-  const { loading, LoadingComponent } = useUserId();
+  const { loading, LoadingComponent, userId } = useUserId();
   const { auth } = useAuth();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [latestReport, setLatestReport] = useState<Report | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      if (!userId) return;
+      try {
+        const { data: res } = await axiosInstance.get(
+          `/patient/reports?patientId=${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
+          }
+        );
+        if (res.error) {
+          throw new Error(res.error);
+        }
+        setReports(res.data.reports);
+        setLatestReport(res.data.reports[res.data.reports.length - 1]);
+      } catch (error) {
+        console.error("Failed to fetch reports:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (!loading && isReady) {
+      fetchReports();
+    }
+  }, [userId, loading, isReady]);
 
   useEffect(() => {
     if (!auth.isLoading) {
@@ -33,35 +73,13 @@ export default function PatientDashboard() {
     return <LoadingComponent />;
   }
 
-  const heartRateData = [
-    { date: "Mon", time: "9:00 AM", value: 75 },
-    { date: "Tue", time: "9:00 AM", value: 78 },
-    { date: "Wed", time: "9:00 AM", value: 71 },
-    { date: "Thu", time: "9:00 AM", value: 73 },
-    { date: "Fri", time: "9:00 AM", value: 76 },
-    { date: "Sat", time: "9:00 AM", value: 74 },
-    { date: "Sun", time: "9:00 AM", value: 72 },
-  ];
-
-  const temperatureData = [
-    { date: "Mon", time: "9:00 AM", value: 98.4 },
-    { date: "Tue", time: "9:00 AM", value: 98.7 },
-    { date: "Wed", time: "9:00 AM", value: 98.5 },
-    { date: "Thu", time: "9:00 AM", value: 98.8 },
-    { date: "Fri", time: "9:00 AM", value: 98.3 },
-    { date: "Sat", time: "9:00 AM", value: 98.6 },
-    { date: "Sun", time: "9:00 AM", value: 98.5 },
-  ];
-
-  const spo2Data = [
-    { date: "Mon", time: "9:00 AM", value: 98 },
-    { date: "Tue", time: "9:00 AM", value: 97 },
-    { date: "Wed", time: "9:00 AM", value: 99 },
-    { date: "Thu", time: "9:00 AM", value: 96 },
-    { date: "Fri", time: "9:00 AM", value: 97 },
-    { date: "Sat", time: "9:00 AM", value: 98 },
-    { date: "Sun", time: "9:00 AM", value: 97 },
-  ];
+  const formatChartData = (reports: Report[], metric: 'heartRate' | 'temperature' | 'bloodOxygen') => {
+    return reports.map(report => ({
+      date: new Date(report.timestamp).toLocaleDateString('en-US', { weekday: 'short' }),
+      time: new Date(report.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' }),
+      value: metric === 'temperature' ? parseFloat(report.temperature) : report[metric]
+    }));
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -74,8 +92,10 @@ export default function PatientDashboard() {
             <Heart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">72 BPM</div>
-            <p className="text-xs text-muted-foreground">Normal range</p>
+            <div className="text-2xl font-bold">
+              {latestReport ? `${latestReport.heartRate.toFixed(2)} BPM` : "-- BPM"}
+            </div>
+            <p className="text-xs text-muted-foreground">Latest reading</p>
           </CardContent>
         </Card>
 
@@ -85,8 +105,10 @@ export default function PatientDashboard() {
             <Thermometer className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98.6°F</div>
-            <p className="text-xs text-muted-foreground">Normal range</p>
+            <div className="text-2xl font-bold">
+              {latestReport ? `${parseFloat(latestReport.temperature).toFixed(2)}°F` : "-- °F"}
+            </div>
+            <p className="text-xs text-muted-foreground">Latest reading</p>
           </CardContent>
         </Card>
 
@@ -96,8 +118,10 @@ export default function PatientDashboard() {
             <Octagon className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">97%</div>
-            <p className="text-xs text-muted-foreground">Normal range</p>
+            <div className="text-2xl font-bold">
+              {latestReport ? `${latestReport.bloodOxygen.toFixed(2)}%` : "--%"}
+            </div>
+            <p className="text-xs text-muted-foreground">Latest reading</p>
           </CardContent>
         </Card>
       </div>
@@ -109,7 +133,7 @@ export default function PatientDashboard() {
           </CardHeader>
           <CardContent className="h-80">
             <AreaChartComponent
-              data={heartRateData}
+              data={formatChartData(reports, 'heartRate')}
               category="Heart Rate"
               color="grey"
             />
@@ -122,7 +146,7 @@ export default function PatientDashboard() {
           </CardHeader>
           <CardContent className="h-80">
             <AreaChartComponent
-              data={temperatureData}
+              data={formatChartData(reports, 'temperature')}
               category="Temperature"
               color="amber"
             />
@@ -135,7 +159,7 @@ export default function PatientDashboard() {
           </CardHeader>
           <CardContent className="h-80">
             <AreaChartComponent
-              data={spo2Data}
+              data={formatChartData(reports, 'bloodOxygen')}
               category="SpO2"
               color="blue"
             />

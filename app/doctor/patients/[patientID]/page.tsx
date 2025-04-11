@@ -14,6 +14,7 @@ import PatientReports from "./reports";
 import Biometrics from "./biometrics";
 import Bio from "./bio";
 import Appointments from "./appointments";
+import VitalLimitsCard from "./vital-limits";
 
 export default function Dashboard() {
   return (
@@ -41,7 +42,7 @@ export default function Dashboard() {
           <section className="flex sm:w-[45%]">
             <Bio />
           </section>
-          <section className="sm:w-[55%] p-3 border-2 rounded-lg">
+          <section className="sm:w-[55%] flex flex-col gap-3">
             <Appointments />
           </section>
         </div>
@@ -51,8 +52,8 @@ export default function Dashboard() {
         <Biometrics />
         <section className="flex gap-3">
           <PatientReports />
-          <PatientNotes />
-        </section>
+          <VitalLimitsCard />
+          </section>
       </main>
     </div>
   );

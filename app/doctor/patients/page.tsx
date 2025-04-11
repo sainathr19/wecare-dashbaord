@@ -25,13 +25,20 @@ import { Input } from "@/components/ui/input";
 import axiosInstance from "@/lib/axios";
 
 interface Patient {
-  id: string;
+  _id: string;
+  patientId: string;
   name: string;
   gender: string;
-  age: string;
-  lastcheckup: string;
-  status: string;
+  age: number;
+  bloodGroup: string;
   membership: string;
+  createdAt: string;
+  updatedAt: string;
+  lastCheckup: string | null;
+  address: {
+    city: string;
+    zipCode: string;
+  };
 }
 
 interface PatientsResponse {
@@ -50,7 +57,14 @@ const Patients = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const { data } = await axiosInstance.get<PatientsResponse>('/doctor/patients?doctorId=DOC101');
+        const { data } = await axiosInstance.get<PatientsResponse>(
+          "/doctor/patients?doctorId=DOC1001",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         if (data.status === "Ok") {
           setPatientList(data.data.patients);
           setFilteredList(data.data.patients);
@@ -85,10 +99,9 @@ const Patients = () => {
           <section className="w-[25%]">
             <CardTitle className="text-xl">Patients List</CardTitle>
             <CardDescription>
-              {isLoading 
-                ? "Loading patients..." 
-                : `Total Patients: ${patientList.length}`
-              }
+              {isLoading
+                ? "Loading patients..."
+                : `Total Patients: ${patientList.length}`}
             </CardDescription>
           </section>
           <Input
@@ -104,12 +117,10 @@ const Patients = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-center">Patient ID</TableHead>
-
                   <TableHead className="text-center">Name</TableHead>
                   <TableHead className="text-center">Gender</TableHead>
                   <TableHead className="text-center">Age</TableHead>
                   <TableHead className="text-center">Last Checkup</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-center">Membership</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
@@ -117,11 +128,11 @@ const Patients = () => {
               <TableBody>
                 {filteredList.length > 0 &&
                   filteredList.map((patient) => (
-                    <TableRow key={patient.id}>
-                      <TableCell className=" pl-0 text-center">
-                        {patient.id}
+                    <TableRow key={patient._id}>
+                      <TableCell className="pl-0 text-center">
+                        {patient.patientId}
                       </TableCell>
-                      <TableCell className=" font-semibold text-center">
+                      <TableCell className="font-semibold text-center">
                         {patient.name}
                       </TableCell>
                       <TableCell className="text-center">
@@ -131,20 +142,7 @@ const Patients = () => {
                         {patient.age}
                       </TableCell>
                       <TableCell className="text-center">
-                        {patient.lastcheckup}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={
-                            patient.status === "Critical" 
-                              ? "error" 
-                              : patient.status === "Abnormal"
-                                ? "warning"
-                                : "success"
-                          }
-                        >
-                          {patient.status}
-                        </Badge>
+                        {patient.lastCheckup ? new Date(patient.lastCheckup).toLocaleDateString() : "N/A"}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge
@@ -157,9 +155,16 @@ const Patients = () => {
                           {patient.membership}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center flex gap-2 justify-center">
                         <Button variant="outline" className="font-normal">
-                          <Link href={`/doctor/patients/${patient.id}`}>Profile</Link>
+                          <Link href={`/doctor/patients/${patient.patientId}`}>
+                            Profile
+                          </Link>
+                        </Button>
+                        <Button variant="outline" className="font-normal">
+                          <Link href={`/doctor/patients/ecg/${patient.patientId}`}>
+                            ECG
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>

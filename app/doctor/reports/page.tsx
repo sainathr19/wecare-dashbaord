@@ -10,21 +10,26 @@ import { PageLoading } from "@/components/ui/page-loading";
 import { Search } from "lucide-react";
 
 interface Report {
+  _id: string;
   reportId: string;
-  measurement: string;
-  date: string;
-  time: string;
+  timestamp: string;
   source: string;
   status: string;
   patientId: string;
-  patientName: string;
-  viewed: boolean;
+  doctorId: string;
+  type: string;
+  isViewed: boolean;
+  temperature: string;
+  heartRate: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showUnviewed, setShowUnviewed] = useState(true);
+  const [showUnviewed, setShowUnviewed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -33,7 +38,11 @@ export default function ReportsPage() {
 
   const fetchReports = async () => {
     try {
-      const { data } = await axiosInstance.get('/doctor/reports');
+      const { data } = await axiosInstance.get('/doctor/reports',{
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+      });
       if (data.status === "Ok") {
         setReports(data.data.reports);
       }
@@ -45,10 +54,10 @@ export default function ReportsPage() {
   };
 
   const filteredReports = reports
-    .filter(report => showUnviewed ? !report.viewed : report.viewed)
+    .filter(report => showUnviewed ? !report.isViewed : report.isViewed)
     .filter(report => 
-      report.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.date.includes(searchQuery) ||
+      report.patientId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.timestamp.includes(searchQuery) ||
       report.status.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -74,7 +83,7 @@ export default function ReportsPage() {
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Unviewed Reports</p>
-              <p className="text-2xl font-bold">{reports.filter(r => !r.viewed).length}</p>
+              <p className="text-2xl font-bold">{reports.filter(r => !r.isViewed).length}</p>
             </div>
           </CardContent>
         </Card>
@@ -82,7 +91,7 @@ export default function ReportsPage() {
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Viewed Reports</p>
-              <p className="text-2xl font-bold">{reports.filter(r => r.viewed).length}</p>
+              <p className="text-2xl font-bold">{reports.filter(r => r.isViewed).length}</p>
             </div>
           </CardContent>
         </Card>

@@ -9,12 +9,33 @@ import jsPDF from "jspdf";
 import { useParams, useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axios";
 import { PageLoading } from "@/components/ui/page-loading";
-import { ApiResponse } from "@/types/api";
-import { Report } from "@/types/report";
 import { useEffect, useState } from "react";
+import { Report } from "@/types/report";
+
+interface PatientBio {
+  _id: string;
+  patientId: string;
+  name: string;
+  gender: string;
+  age: number;
+  bloodGroup: string;
+  address: {
+    city: string;
+    zipCode: string;
+  };
+  membership: string;
+  joinDate: string;
+  emergencyContacts: {
+    name: string;
+    phone: string;
+    relation: string;
+  }[],
+  birthDate: string;
+}
 
 const ReportPage = () => {
   const [report, setReport] = useState<Report | null>(null);
+  const [patientBio, setPatientBio] = useState<PatientBio | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { reportId } = useParams();
   const router = useRouter();
@@ -22,7 +43,7 @@ const ReportPage = () => {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const { data: res } = await axiosInstance.get<ApiResponse<Report>>(`/doctor/reports/${reportId}`, {
+        const { data: res } = await axiosInstance.get(`/doctor/reports/${reportId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           }
@@ -30,7 +51,8 @@ const ReportPage = () => {
         if (res.error) {
           throw new Error(res.error);
         }
-        setReport(res.data || null);
+        setReport(res.data.report);
+        setPatientBio(res.data.patientBio);
       } catch (error) {
         console.error("Failed to fetch report:", error);
       } finally {
@@ -59,7 +81,7 @@ const ReportPage = () => {
     return <PageLoading />;
   }
 
-  if (!report) {
+  if (!report || !patientBio) {
     return <div>Report not found</div>;
   }
 
@@ -88,7 +110,7 @@ const ReportPage = () => {
         <div className="bg-background rounded-lg shadow-lg pt-8">
           <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="max-w-3xl mx-auto report">
-              <PatientReportTemplate report={report} />
+              <PatientReportTemplate report={report} patientBio={patientBio} />
             </div>
           </ScrollArea>
         </div>

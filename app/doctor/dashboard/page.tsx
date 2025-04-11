@@ -12,7 +12,6 @@ import { NotificationBanner } from "@/components/ui/notification-banner";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 import { useUserId } from "@/hooks/useUserId";
-import { ApiResponse } from "@/types/api";
 export default function DoctorDashboard() {
   const router = useRouter();
   const [unviewedReports, setUnviewedReports] = useState(0);
@@ -21,7 +20,7 @@ export default function DoctorDashboard() {
     const fetchUnviewedReports = async () => {
       if (!userId) return;
       try {
-        const { data : res} = await axiosInstance.get<ApiResponse<Report[]>>(`/doctor/reports?doctorId=${userId}`,{
+        const { data : res} = await axiosInstance.get(`/doctor/reports?doctorId=${userId}`,{
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           }
@@ -29,7 +28,9 @@ export default function DoctorDashboard() {
         if (res.error) {
           throw new Error(res.error);
         }
-        setUnviewedReports(res.data!.length);
+        const unviewed = res.data!.reports.filter((report : any ) => !report.isViewed);
+        console.log("Unviwede : ",unviewed.length);
+        setUnviewedReports(unviewed.length);
       } catch (error) {
         console.error("Failed to fetch unviewed reports:", error);
       }

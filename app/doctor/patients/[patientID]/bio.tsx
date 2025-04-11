@@ -81,7 +81,7 @@ function Bio() {
       <div className="flex flex-col items-center justify-center mb-4 sm:mb-0">
         <div>
           <img
-            src="/Photo.jpg"
+            src="/dp.png"
             className="h-[80px] w-[80px] rounded-[50%]"
             alt={profile?.name}
           />

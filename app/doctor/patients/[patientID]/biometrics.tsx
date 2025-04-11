@@ -17,7 +17,7 @@ const metricsConfig = {
     color: "grey",
     unit: "bpm"
   },
-  oxygen: {
+  bloodOxygen: {
     title: "SpO2",
     color: "grey",
     unit: "%"
@@ -30,10 +30,13 @@ const metricsConfig = {
 };
 
 type BiometricsData = {
+  _id: string;
+  reportId: string;
   timestamp: string;
+  temperature: string;
+  bloodOxygen: number;
   heartRate: number;
-  oxygen: number;
-  temperature: number;
+  status: string;
 }
 
 const Biometrics = () => {
@@ -44,8 +47,8 @@ const Biometrics = () => {
   useEffect(() => {
     const fetchBiometrics = async () => {
       try {
-        const {data : res} = await axiosInstance.get<ApiResponse<BiometricsData[]>>(
-          `/patient/biometrics?patientId=${params.patientID}`, {
+        const { data: res } = await axiosInstance.get(
+          `/patient/reports?patientId=${params.patientID}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`
             } 
@@ -54,7 +57,7 @@ const Biometrics = () => {
         if (res.error) {
           throw new Error(res.error);
         }
-        setBiometricsData(res.data!);
+        setBiometricsData(res.data.reports);
       } catch (error) {
         console.error('Error fetching biometrics:', error);
       } finally {
@@ -68,7 +71,8 @@ const Biometrics = () => {
     const data = biometricsData.map(day => ({
       date: format(new Date(day.timestamp), "MMM dd"),
       time: format(new Date(day.timestamp), "hh:mm a"),
-      value: day[key as keyof typeof biometricsData[0]]
+      value: key === 'temperature' ? parseFloat(day.temperature) : 
+             key === 'bloodOxygen' ? day.bloodOxygen : day.heartRate
     }));
 
     return {
@@ -94,7 +98,7 @@ const Biometrics = () => {
           <div className="flex items-center">
             <TabsList className="gap-5">
               <TabsTrigger value="heartRate">Heart Rate</TabsTrigger>
-              <TabsTrigger value="oxygen">SpO2</TabsTrigger>
+              <TabsTrigger value="bloodOxygen">SpO2</TabsTrigger>
               <TabsTrigger value="temperature">Temperature</TabsTrigger>
             </TabsList>
           </div>

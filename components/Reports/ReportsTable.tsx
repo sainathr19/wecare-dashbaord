@@ -18,14 +18,19 @@ import { Badge } from "../Badge/Badge";
 import { useRouter } from "next/navigation";
 
 interface Report {
+  _id: string;
   reportId: string;
-  measurement: string;
-  date: string;
-  time: string;
+  timestamp: string;
   source: string;
   status: string;
   patientId: string;
-  patientName: string;
+  doctorId: string;
+  type: string;
+  isViewed: boolean;
+  temperature: string;
+  heartRate: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ReportsTableProps {
@@ -55,9 +60,20 @@ export default function ReportsTable({ reports }: ReportsTableProps) {
         ) : (
           reports.map((report) => (
             <TableRow key={report.reportId}>
-              <TableCell className="font-medium text-center">{report.date}</TableCell>
-              <TableCell className="font-medium text-center">{report.time}</TableCell>
-              <TableCell className="font-medium text-center">{report.patientName}</TableCell>
+              <TableCell className="font-medium text-center">
+                {new Date(report.timestamp).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </TableCell>
+              <TableCell className="font-medium text-center">
+                {new Date(report.timestamp).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </TableCell>
+              <TableCell className="font-medium text-center">{report.patientId}</TableCell>
               <TableCell className="text-center">
                 <Badge variant={report.status.toLowerCase() === "normal" ? "success" : "warning"}>
                   {report.status}

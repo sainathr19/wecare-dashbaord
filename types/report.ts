@@ -1,21 +1,16 @@
 export interface Report {
-  reportId: string;
-  hospitalAssociated: {
-    name: string;
-    addressLine1: string;
-    addressLine2: string;
-  };
-  doctorName: string;
-  patientName: string;
-  patientInfo: string;
-  checkupTime: string;
-  checkupDate: string;
-  biometrics: Array<{
-    name: string;
-    measurement: string;
-    average: string;
+    _id: string;
+    reportId: string;
+    timestamp: string;
+    source: string;
     status: string;
-  }>;
-  note: string;
-  overallCondition: string;
-}
+    patientId: string;
+    doctorId: string;
+    type: string;
+    isViewed: boolean;
+    temperature: string;
+    heartRate: string;
+    createdAt: string;
+    updatedAt: string;
+    bloodOxygen: string;
+  }

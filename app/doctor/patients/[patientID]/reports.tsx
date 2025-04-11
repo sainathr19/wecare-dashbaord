@@ -5,17 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axiosInstance from "@/lib/axios";
-
-interface Report {
-  reportId: string;
-  measurement: string;
-  date: string;
-  time: string;
-  source: string;
-  status: string;
-  patientId: string;
-  patientName: string;
-}
+import { Report } from "@/types/report";
 
 const PatientReports = () => {
   const [reports, setReports] = useState<Report[]>([]);

@@ -127,7 +127,7 @@ export default function PatientProfile() {
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="relative">
               <img
-                src="/Photo.jpg"
+                src="/dp.png"
                 alt="Profile"
                 className="h-40 w-40 rounded-full object-cover border-4 border-primary/10"
               />
