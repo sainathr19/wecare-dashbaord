@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import axiosInstance from "@/lib/axios";
 import { Heart } from "lucide-react";
@@ -63,40 +63,28 @@ export default function ECGPage() {
   const [ecgData, setEcgData] = useState<ECGData[]>([]);
   const [stats, setStats] = useState<ECGStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('1hour');
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: subDays(new Date(), 7),
-    to: new Date(),
-  });
   const [latestTimestamp, setLatestTimestamp] = useState<string>('');
 
-  // Add this function after state declarations
-  // Update the calculateStats function to use filtered data
   const calculateStats = (data: ECGData[]) => {
-    const visibleData = getVisibleData(data);
-    if (visibleData.length === 0) return null;
+    if (data.length === 0) return null;
     
-    const values = visibleData.map(reading => reading.ecg_value);
+    const values = data.map(reading => reading.ecg_value);
     return {
       averageHeartRate: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
       maxHeartRate: Math.max(...values),
       minHeartRate: Math.min(...values),
       abnormalCount: values.filter(v => v > 2000 || v < 1800).length,
-      totalReadings: visibleData.length
+      totalReadings: values.length
     };
   };
 
-  // Update useEffect to recalculate stats when data changes
   useEffect(() => {
     const fetchECGData = async () => {
-      if (!patientId || !dateRange.from || !dateRange.to) return;
+      if (!patientId) return;
       
       try {
-        const startTime = format(dateRange.from, "yyyy-MM-dd'T'HH:mm:ss'Z'");
-        const endTime = format(dateRange.to, "yyyy-MM-dd'T'HH:mm:ss'Z'");
-        
         const { data: res } = await axiosInstance.get(
-          `/patient/ecg?patientId=${patientId}&startTime=${startTime}&endTime=${endTime}`,
+          `/patient/ecg?patientId=${patientId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -107,9 +95,10 @@ export default function ECGPage() {
         if (res.error) {
           throw new Error(res.error);
         }
-
         setEcgData(res.data.ecgData);
-        setLatestTimestamp(res.data.ecgData[res.data.ecgData.length - 1].timestamp);
+        if (res.data.ecgData.length > 0) {
+          setLatestTimestamp(res.data.ecgData[res.data.ecgData.length - 1].timestamp);
+        }
       } catch (error) {
         console.error("Failed to fetch ECG data:", error);
       } finally {
@@ -120,107 +109,29 @@ export default function ECGPage() {
     fetchECGData();
     const intervalId = setInterval(fetchECGData, 3000);
     return () => clearInterval(intervalId);
-  }, [patientId, dateRange, timeFilter]);
+  }, [patientId]);
 
   useEffect(() => {
     setStats(calculateStats(ecgData));
-  }, [ecgData, timeFilter, dateRange]);
+  }, [ecgData]);
 
-  const aggregateData = (data: ECGData[]) => {
-    if (!dateRange.from || !dateRange.to) return data;
-    
-    const daysDiff = differenceInDays(dateRange.to, dateRange.from);
-    const hoursDiff = differenceInHours(dateRange.to, dateRange.from);
-
-    if (timeFilter === '30min') {
-      return data.filter(reading => 
-        isWithinInterval(new Date(reading.timestamp), {
-          start: addMinutes(new Date(), -30),
-          end: new Date()
-        })
-      );
-    }
-
-    if (timeFilter === '1hour') {
-      return data.filter(reading => 
-        isWithinInterval(new Date(reading.timestamp), {
-          start: addHours(new Date(), -1),
-          end: new Date()
-        })
-      );
-    }
-
-    // Aggregate if data span is more than a day
-    if (daysDiff > 1) {
-      const aggregated: ECGData[] = [];
-      const groupedByDay = data.reduce((acc, reading) => {
-        const day = format(new Date(reading.timestamp), 'yyyy-MM-dd');
-        if (!acc[day]) acc[day] = [];
-        acc[day].push(reading);
-        return acc;
-      }, {} as Record<string, ECGData[]>);
-
-      Object.entries(groupedByDay).forEach(([day, readings]) => {
-        const avgValue = Math.round(readings.reduce((sum, r) => sum + r.ecg_value, 0) / readings.length);
-        aggregated.push({
-          ...readings[0],
-          timestamp: `${day}T12:00:00Z`,
-          ecg_value: avgValue
-        });
-      });
-      return aggregated;
-    }
-
-    // Aggregate by hour if data span is more than 6 hours
-    if (hoursDiff > 6) {
-      const aggregated: ECGData[] = [];
-      const groupedByHour = data.reduce((acc, reading) => {
-        const hour = format(new Date(reading.timestamp), 'yyyy-MM-dd HH');
-        if (!acc[hour]) acc[hour] = [];
-        acc[hour].push(reading);
-        return acc;
-      }, {} as Record<string, ECGData[]>);
-
-      Object.entries(groupedByHour).forEach(([hour, readings]) => {
-        const avgValue = Math.round(readings.reduce((sum, r) => sum + r.ecg_value, 0) / readings.length);
-        aggregated.push({
-          ...readings[0],
-          timestamp: `${hour}:00:00Z`,
-          ecg_value: avgValue
-        });
-      });
-      return aggregated;
-    }
-
-    return data;
-  };
-
-  // Add this state for pagination
-  const [visibleDataCount] = useState(30);
-
-  const getVisibleData = (data: ECGData[]) => {
-    const aggregatedData = aggregateData(data);
-    return aggregatedData.slice(Math.max(aggregatedData.length - visibleDataCount, 0));
-  };
-
-  // Update chart data section
   const chartData = {
-    labels: getVisibleData(ecgData).map(reading => 
-      format(new Date(reading.timestamp), 
-        timeFilter === 'custom' ? 'MMM dd, HH:mm' : 'HH:mm:ss'
-      )
-    ),
+    labels: ecgData
+      .slice(-20)
+      .map(reading => format(new Date(reading.timestamp), 'HH:mm:ss')),
     datasets: [
       {
         label: 'ECG Reading',
-        data: getVisibleData(ecgData).map(reading => reading.ecg_value),
+        data: ecgData.slice(-20).map(reading => reading.ecg_value),
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1,
-        pointBackgroundColor: getVisibleData(ecgData).map(reading => 
-          (reading.ecg_value >= 1800 && reading.ecg_value <= 2000) 
-            ? 'rgb(75, 192, 192)' 
-            : 'rgb(255, 99, 132)'
-        ),
+        pointBackgroundColor: ecgData
+          .slice(-20)
+          .map(reading => 
+            (reading.ecg_value >= 1800 && reading.ecg_value <= 2000) 
+              ? 'rgb(75, 192, 192)' 
+              : 'rgb(255, 99, 132)'
+          ),
       }
     ]
   };
