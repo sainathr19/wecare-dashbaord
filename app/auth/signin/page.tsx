@@ -5,10 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/components/ui/use-toast";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import axiosInstance from '@/lib/axios';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,15 +25,21 @@ export default function SignIn() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    role: "PATIENT"
+  });
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const roleFromUrl = params.get('role')?.toUpperCase() || 'PATIENT';
-    return {
-      email: "",
-      password: "",
+    setFormData(prev => ({
+      ...prev,
       role: roleFromUrl
-    };
-  });
+    }));
+  }, []);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
