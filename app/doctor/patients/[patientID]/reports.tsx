@@ -22,7 +22,11 @@ const PatientReports = () => {
         });
         
         if (data.status === "Ok" && Array.isArray(data.data.reports)) {
-          setReports(data.data.reports);
+          // Sort reports by timestamp and take the latest 5
+          const sortedReports = [...data.data.reports]
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 5);
+          setReports(sortedReports);
         } else {
           setReports([]);
           console.error("Invalid data format received:", data);

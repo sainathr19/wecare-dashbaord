@@ -68,18 +68,22 @@ const Biometrics = () => {
   }, [params.patientID]);
 
   const biometricData = Object.entries(metricsConfig).reduce((acc, [key, config]) => {
-    const data = biometricsData.map(day => ({
-      date: format(new Date(day.timestamp), "MMM dd"),
-      time: format(new Date(day.timestamp), "hh:mm a"),
-      value: key === 'temperature' ? parseFloat(day.temperature) : 
-             key === 'bloodOxygen' ? day.bloodOxygen : day.heartRate
-    }));
+    // Sort data by timestamp and take only the last 8 entries
+    const sortedData = [...biometricsData]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 8)
+      .map(day => ({
+        date: format(new Date(day.timestamp), "MMM dd"),
+        time: format(new Date(day.timestamp), "hh:mm a"),
+        value: key === 'temperature' ? parseFloat(day.temperature) : 
+               key === 'bloodOxygen' ? day.bloodOxygen : day.heartRate
+      }));
 
     return {
       ...acc,
       [key]: {
         ...config,
-        data
+        data: sortedData
       }
     };
   }, {} as Record<keyof typeof metricsConfig, typeof metricsConfig[keyof typeof metricsConfig] & { data: { date: string; time: string; value: number }[] }>);
