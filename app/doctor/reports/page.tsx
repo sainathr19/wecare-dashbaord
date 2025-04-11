@@ -59,7 +59,8 @@ export default function ReportsPage() {
       report.patientId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.timestamp.includes(searchQuery) ||
       report.status.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    )
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   if (isLoading) {
     return <PageLoading />;

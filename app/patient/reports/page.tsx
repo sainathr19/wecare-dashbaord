@@ -74,7 +74,11 @@ export default function ReportsPage() {
         if (res.error) {
           throw new Error(res.error);
         }
-        setReports(res.data!.reports || []);
+        // Sort reports by timestamp before setting state
+        const sortedReports = [...res.data!.reports].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+        setReports(sortedReports || []);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
         setReports([]);

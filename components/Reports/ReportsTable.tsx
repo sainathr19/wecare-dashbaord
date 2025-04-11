@@ -45,7 +45,7 @@ export default function ReportsTable({ reports }: ReportsTableProps) {
         <TableRow>
           <TableHead className="w-[150px] text-center">Date</TableHead>
           <TableHead className="text-center">Time</TableHead>
-          <TableHead className="text-center">Name</TableHead>
+          <TableHead className="text-center">Patient Id</TableHead>
           <TableHead className="text-center">Status</TableHead>
           <TableHead className="text-center">Actions</TableHead>
         </TableRow>
