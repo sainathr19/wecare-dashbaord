@@ -44,7 +44,7 @@ const ReportPage = () => {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const { data: res } = await axiosInstance.get(`/patient/reports/${reportId}`, {
+        const { data: res } = await axiosInstance.get(`/doctor/reports/${reportId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           }
